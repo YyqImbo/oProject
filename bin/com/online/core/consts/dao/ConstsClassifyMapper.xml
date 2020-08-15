@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper    
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"    
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.online.core.consts.dao.ConstsClassifyDao">
+	
+	<resultMap id="BeanResultMap" type="com.online.core.consts.domain.ConstsClassify" >
+		<id column="id" property="id" jdbcType="INTEGER"/>
+		<result column="name" property="name"  jdbcType="VARCHAR" />
+		<result column="code" property="code"  jdbcType="VARCHAR" />
+		<result column="parent_code" property="parentCode"  jdbcType="VARCHAR" />
+		<result column="sort" property="sort"  jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime"  jdbcType="DATE" />
+		<result column="create_user" property="createUser"  jdbcType="VARCHAR" />
+		<result column="update_time" property="updateTime"  jdbcType="TIMESTAMP" />
+		<result column="update_user" property="updateUser"  jdbcType="VARCHAR" />
+		<result column="del" property="del"  jdbcType="TINYINT" />
+	</resultMap>
+	
+	<sql id="All_Columns">
+		name, code, parent_code, sort, create_time, create_user, update_time, 
+		update_user, del, id 
+	</sql>
+	
+	<select id="getById" parameterType="java.lang.Long" resultMap="BeanResultMap">
+		SELECT 
+		<include refid="All_Columns"  />
+		FROM t_consts_classify
+		WHERE id = #{id, jdbcType=INTEGER}
+		AND del=0
+	</select>
+	
+	<select id="getByCode" parameterType="java.lang.String" resultMap="BeanResultMap">
+		SELECT 
+		<include refid="All_Columns"  />
+		FROM t_consts_classify
+		WHERE code = #{code, jdbcType=VARCHAR}
+		AND del = 0
+	</select>
+	
+	<select id="queryAll"  resultMap="BeanResultMap">
+		SELECT 
+		<include refid="All_Columns" />
+		FROM t_consts_classify 
+		WHERE del = 0
+		ORDER BY parent_code , sort
+	</select>
+	
+	<select id="queryByCondition"  parameterType="com.online.core.consts.domain.ConstsClassify" resultMap="BeanResultMap"  >
+		SELECT 
+		<include refid="All_Columns" />
+		FROM t_consts_classify 
+		<trim prefix="WHERE" prefixOverrides="AND |OR "> 
+			 del = 0
+			<if test="code != null">
+				AND code = #{code}
+			</if>
+			<if test="parentCode != null">
+				AND parent_code = #{parentCode}
+			</if>
+		</trim>
+		ORDER BY parent_code , sort
+	</select>
+	
+	<select id="getItemsTotalCount" parameterType="com.online.core.consts.domain.ConstsClassify" resultType="java.lang.Integer" >
+		SELECT COUNT(*) 
+		FROM t_consts_classify
+		WHERE del = 0 
+	</select>
+	
+	<select id="queryConstsClassifyPage" resultMap="BeanResultMap">
+		SELECT 
+		<include refid="All_Columns" />
+		FROM t_consts_classify
+		WHERE del = 0 
+		ORDER BY id
+		LIMIT #{param2.startIndex, jdbcType=INTEGER} , #{param2.pageSize, jdbcType=INTEGER} 
+	</select>
+	
+	<insert id="createSelectivity" parameterType="com.online.core.consts.domain.ConstsClassify" flushCache="true"  useGeneratedKeys="true" keyProperty="id"  >
+		INSERT INTO t_consts_classify
+		<trim prefix="(" suffix=")"  suffixOverrides="," >
+			<if test="name != null ">
+			name,
+			</if>
+			<if test="code != null ">
+			CODE,
+			</if>
+			<if test="parentCode != null ">
+			parent_code,
+			</if>
+			<if test="sort != null ">
+			sort,
+			</if>
+			<if test="createTime != null ">
+			create_time,
+			</if>
+			<if test="createUser != null ">
+			create_user,
+			</if>
+			<if test="updateTime != null ">
+			update_time,
+			</if>
+			<if test="updateUser != null ">
+			update_user,
+			</if>
+			<if test="del != null ">
+			del,
+			</if>
+		</trim>
+		VALUES
+		<trim prefix="(" suffix=")"  suffixOverrides="," >
+			<if test="name != null ">
+			#{name, jdbcType=VARCHAR},
+			</if>
+			<if test="code != null ">
+			#{code, jdbcType=VARCHAR},
+			</if>
+			<if test="parentCode != null ">
+			#{parentCode, jdbcType=VARCHAR},
+			</if>
+			<if test="sort != null ">
+			#{sort, jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null ">
+			#{createTime, jdbcType=DATE},
+			</if>
+			<if test="createUser != null ">
+			#{createUser, jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null ">
+			#{updateTime, jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateUser != null ">
+			#{updateUser, jdbcType=VARCHAR},
+			</if>
+			<if test="del != null ">
+			#{del, jdbcType=TINYINT},
+			</if>
+		</trim>
+	</insert>
+	
+	<update id="updateSelectivity" parameterType="com.online.core.consts.domain.ConstsClassify" flushCache="true">
+		UPDATE t_consts_classify
+		<trim prefix="SET" suffixOverrides="," >
+			<if test="name != null ">
+			name = #{name, jdbcType=VARCHAR},
+			</if>
+			<if test="parentCode != null ">
+			parent_code = #{parentCode, jdbcType=VARCHAR},
+			</if>
+			<if test="sort != null ">
+			sort = #{sort, jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null ">
+			update_time = #{updateTime, jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateUser != null ">
+			update_user = #{updateUser, jdbcType=VARCHAR},
+			</if>
+			<if test="del != null ">
+			del = #{del, jdbcType=TINYINT},
+			</if>
+		</trim>
+		WHERE id = #{id, jdbcType = INTEGER}
+	</update>
+	
+	<delete id="delete" parameterType="com.online.core.consts.domain.ConstsClassify" >
+		DELETE 
+		FROM t_consts_classify
+		WHERE id = #{id, jdbcType=INTEGER}
+	</delete>
+
+	<update id="deleteLogic" parameterType="com.online.core.consts.domain.ConstsClassify" flushCache="true">
+		UPDATE t_consts_classify
+		SET del = 1
+		WHERE id = #{id, jdbcType=INTEGER}
+	</update>
+	
+	
+
+
+
+
+</mapper>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+
+<context:annotation-config />
+<context:component-scan base-package="com.online"></context:component-scan>
+<!-- 引入shiro -->
+<import resource="shiro.xml" />
+
+<!-- 针对 Responsebody 转码 -->
+    	<mvc:annotation-driven>
+			<mvc:message-converters register-defaults="true" >
+				<bean class="com.online.common.web.UTF8HttpMessageConverter" />
+			</mvc:message-converters>
+		</mvc:annotation-driven>
+
+<!-- 读取properties文件 -->
+<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+<!-- properties文件找不到，会去jvm下查找 -->
+<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+<!-- 如果属性文件找不到，是否忽略，默认false，即不忽略，找不到文件并不会抛出异常 -->
+<property name="ignoreResourceNotFound" value="true" />
+	<property name="locations">
+		<list>
+			<value>classpath:/db.properties</value>
+			<value>classpath:/application.properties</value> 
+		</list>
+	</property>
+</bean>
+
+<!-- 配置数据源 -->
+<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+	<property name="driverClassName" value="${jdbc.driver}" />
+	<property name="url" value="${jdbc.url}" />
+	<property name="username" value="${jdbc.username}" />
+	<property name="password" value="${jdbc.password}" />
+	<!-- 连接用完时，c3p0一次性新建连接的数量 -->
+	<!-- <property name="acquireIncrement"  value="${c3p0.acquireIncrement}"/> -->
+	<!-- 初始连接数量 -->
+	<!-- <property name="initialPoolSize" value="${c3p0.initialPoolSize}" /> -->
+	<!-- 隔多少秒检查所有连接池中的空闲连接，默认为0表示不检查 -->
+	<!-- <property name="idleConnectionTestPeriod" value="${c3p0.idleConnectionTestPeriod}" />
+	<property name="minPoolSize" value="${c3p0.minPoolSize}" />
+	<property name="maxPoolSize" value="${c3p0.maxPoolSize}" /> -->
+	<!-- 控制数据源内加载的PreparedStatement数量。
+	但由于预缓存的Statement属于单个Connection而不是整个连接池。
+	所以设置这个参数需要考虑到多方面的因素 -->
+	<!-- <property name="maxStatements" value="${c3p0.maxStatements}" /> -->
+	<!-- 最大空闲时间，超过空闲时间的连接将被丢弃。为0或负数则永不丢弃。默认为0 -->
+	<!-- <property name="maxIdleTime" value="${c3p0.maxIdleTime}" /> -->
+	<!-- autoCommitOnClose连接关闭时默认将所有未提交的操作回滚。默认为false；如果为false，
+	则会回滚未提交的事务，如果为true，则会自动提交事务 -->
+
+</bean>
+
+
+<!-- sqlSessionFactory -->
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	<property name="dataSource" ref="dataSource" />
+	<property name="configLocation" value="classpath:SqlMapConfig.xml" />
+	<property name="mapperLocations" value="classpath*:com/online/core/*/dao/*Mapper.xml" />
+</bean>
+
+<!-- sqlSession -->
+<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+	<constructor-arg index="0" ref="sqlSessionFactory" />
+</bean>
+
+<!-- mapperScan -->
+<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	<property name="basePackage" value="com.online.core.*.dao" />
+	<!-- <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" /> -->
+</bean>
+
+<!-- 事务管理器 -->
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<property name="dataSource" ref="dataSource" />
+</bean>
+
+<tx:advice id="txAdvice" transaction-manager="transactionManager">
+			<tx:attributes>
+				<tx:method name="do*" propagation="REQUIRED" />
+				<tx:method name="delete*" propagation="REQUIRED" />
+				<tx:method name="merge*" propagation="REQUIRED" />
+				<tx:method name="add*" propagation="REQUIRED" />
+				<tx:method name="save*" propagation="REQUIRED" />
+				<tx:method name="create*" propagation="REQUIRED" />
+				<tx:method name="insert*" propagation="REQUIRED" />
+				<tx:method name="update*" propagation="REQUIRED" />
+				<tx:method name="enable*" propagation="REQUIRED" />
+				<tx:method name="disable*" propagation="REQUIRED" />
+				<tx:method name="generate*" propagation="REQUIRED" />
+				<tx:method name="*" read-only="true"/> 
+			</tx:attributes>
+		</tx:advice>
+
+<aop:config>
+	<aop:pointcut expression="execution (* com.online.*.*.service.*.*(..))" id="services"/>
+	<aop:advisor advice-ref="txAdvice" pointcut-ref="services" />
+</aop:config>
+
+<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+		 
+
+
+</beans>
